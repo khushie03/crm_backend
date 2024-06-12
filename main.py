@@ -29,34 +29,6 @@ cnx = mysql.connector.connect(
 @app.route('/')
 def index():
     return render_template("index.html")
-import logging
-@app.route('/customer_details', methods=['POST', 'GET'])
-def customer_details():
-    try:
-        min_visits = request.args.get('number_of_visits', default=1, type=int)
-        min_spend_rate = request.args.get('spend_rate', default=1.0, type=float)
-        min_visits = 3
-        min_spend_rate = 1200
-        cursor = cnx.cursor(dictionary=True)
-        select_query = """
-        SELECT * FROM customer_details
-        WHERE number_of_visits >= %s AND spend_rate >= %s
-        """
-        cursor.execute(select_query, (min_visits, min_spend_rate))
-        customers = cursor.fetchall()
-        cursor.close()
-        logging.debug(customers)
-        print(customers)
-        print(min_visits)
-        print(min_spend_rate)
-        return render_template("customer_details.html", customers=customers)
-    except mysql.connector.Error as err:
-        logging.error(f"Error in retrieving items: {err}")
-        return jsonify({"error": "Error occurred while retrieving customer details."})
-    except Exception as e:
-        logging.error(f"An error occurred: {e}")
-        return jsonify({"error": "An error occurred while retrieving customer details."})
-
 @app.route('/login_status', methods=['GET'])
 def login_details_analysis():
     try:
@@ -104,31 +76,7 @@ def client_Data_details():
         logging.error(f"An error occurred: {e}")
         return jsonify({"error": "An error occurred while retrieving customer details."})
     
-@app.route('/insert_customer_details', methods=['GET', 'POST'])
-def insert_customer_details():
-    if request.method == 'POST':
-        try:
-            name = request.form['name']
-            number_of_visits = int(request.form['number_of_visits'])
-            last_purchase_date = request.form['last_purchase_date']
-            spend_rate = float(request.form['spend_rate'])
-            email_id = request.form['email_id']
 
-            # Insert the customer details into the database
-            result = insert_customer(name, number_of_visits, last_purchase_date, spend_rate, email_id)
-            if result == 1:
-                return jsonify({"message": "Customer inserted successfully"}), 200
-            else:
-                return jsonify({"error": "Error occurred while inserting customer data."}), 500
-        except KeyError:
-            return jsonify({"error": "Missing required fields"}), 400
-        except ValueError:
-            return jsonify({"error": "Invalid input type"}), 400
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            return jsonify({"error": "An error occurred while inserting customer data."}), 500
-    else:
-        return render_template('insert_customer_details.html')
 
 def insert_customer(name, number_of_visits, last_purchase_date, spend_rate, email_id):
     try:
